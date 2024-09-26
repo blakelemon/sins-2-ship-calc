@@ -169,25 +169,18 @@
     </div>
 
     <script>
-        const shipData = [];
+        let shipData = [];
 
         async function loadShipData() {
             try {
-                const response = await fetch('assets/sins_data.csv');
-                const data = await response.text();
-                const rows = data.split('\n');
-                const headers = rows[0].split(',');
-
-                for (let i = 1; i < rows.length; i++) {
-                    const values = rows[i].split(',');
-                    if (values.length === headers.length) {
-                        const ship = {};
-                        for (let j = 0; j < headers.length; j++) {
-                            ship[headers[j]] = values[j].trim() === '' ? null : isNaN(values[j]) ? values[j].trim() : parseFloat(values[j]);
-                        }
-                        shipData.push(ship);
-                    }
-                }
+                const response = await fetch('assets/sins_data.json');
+                const jsonData = await response.json();
+                shipData = Object.entries(jsonData).map(([shipName, shipStats]) => {
+                    return {
+                        Ship: shipName,
+                        ...shipStats
+                    };
+                });
                 console.log('Loaded ship data:', shipData);
                 setupShipGroups('attacker');
                 setupShipGroups('defender');
@@ -228,64 +221,6 @@
             "TEC_Turret", "TEC_Gauss_Turret", "TEC_Hangar", "Adv_Turret", "Adv_Beam_Turret", "Adv_Hangar",
             "Vas_Turret", "Vas_Missile_Turret", "TEC_Starbase", "Adv_Starbase", "Vas_Starbase"
         ];
-Vas_Raider\t0\t415\t1\t120\t18\t245\t2\t802\t802\t24\t22\t0\t75\t45\t240\t360\t285\t5\t48\t72\t6.67\t1.33\t35.98\t53.97\t42.73\t3.34\t2.23\t2.81\t3.34\t2.23\t2.81\t0\t16\t150\t4\t4\t48\t300\t18\t2.67\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Defensor\t0\t335\t1\t120\t18\t270\t2\t747\t747\t24\t18\t0\t65\t25\t180\t270\t205\t4\t45\t67.5\t9.33\t2.33\t19.29\t28.94\t21.97\t4.15\t2.77\t3.64\t4.15\t2.77\t3.64\t0\t18\t50\t3\t6\t6\t0\t1.8\t3.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_LF\t60\t720\t1.5\t375\t48\t495\t3\t1770\t2832\t42\t22\t0\t110\t15\t250\t375\t265\t7\t35.71\t53.57\t12\t1.71\t20.83\t31.25\t22.08\t7.08\t4.72\t6.68\t11.33\t7.55\t10.69\t0\t48\t150\t4\t12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_LRF\t120\t795\t1.5\t225\t48\t420\t3\t1548\t3406\t48\t24\t0\t125\t35\t320\t480\t355\t6\t53.33\t80\t12\t2\t26.67\t40\t29.58\t4.84\t3.23\t4.36\t10.64\t7.1\t9.59\t0\t144\t450\t12\t12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_HC\t400\t985\t2\t625\t96\t660\t4\t2870\t14350\t120\t41\t0\t335\t180\t1030\t1545\t1210\t15\t68.67\t103\t27.5\t1.83\t37.45\t56.18\t44\t2.79\t1.86\t2.37\t13.93\t9.29\t11.86\t0\t120\t180\t6\t20\t9\t0\t1.2\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Carrier\t180\t1260\t2\t565\t72\t600\t4\t2832\t7930\t90\t52\t0\t265\t325\t1180\t1770\t1505\t15\t78.67\t118\t47\t3.13\t25.11\t37.66\t32.02\t2.4\t1.6\t1.88\t6.72\t4.48\t5.27\t2\t18\t0\t1.2\t15\t\t\t\t\t576\t300\t18\t32\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Penetrator\t400\t660\t2\t925\t120\t720\t4\t3415\t17075\t45\t36\t0\t420\t375\t1590\t2385\t1965\t15\t106\t159\t10\t0.67\t159\t238.5\t196.5\t2.15\t1.43\t1.74\t10.74\t7.16\t8.69\t0\t50\t1000\t5\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Corvette\t0\t450\t1\t0\t0\t300\t2\t750\t750\t20\t15\t195\t0\t40\t275\t315\t315\t4\t68.75\t78.75\t6\t1.5\t45.83\t52.5\t52.5\t2.73\t2.38\t2.38\t2.73\t2.38\t2.38\t0\t30\t50\t5\t6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_LF\t50\t525\t1.5\t0\t0\t550\t3\t1075\t1612\t28\t14\t200\t35\t0\t270\t305\t270\t4\t67.5\t76.25\t8\t2\t33.75\t38.12\t33.75\t3.98\t3.52\t3.98\t5.97\t5.29\t5.97\t0\t40\t150\t5\t8\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Tempests\t150\t800\t1.5\t0\t0\t825\t3\t1625\t4062\t48\t25\t0\t65\t80\t290\t435\t370\t6\t48.33\t72.5\t14.12\t2.35\t20.54\t30.81\t26.2\t5.6\t3.74\t4.39\t14.01\t9.34\t10.98\t0\t120\t0\t8.5\t14.12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Flak\t200\t1000\t2\t400\t50\t900\t4\t2500\t7500\t90\t35\t655\t115\t0\t885\t1000\t885\t9\t98.33\t111.11\t18\t2\t49.17\t55.56\t49.17\t2.82\t2.5\t2.82\t8.47\t7.5\t8.47\t0\t21\t0\t2\t10.5\t45\t50\t6\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_LRF\t150\t975\t2\t0\t0\t925\t4\t1900\t4750\t64\t34\t655\t145\t0\t945\t1090\t945\t8\t118.12\t136.25\t21.25\t2.66\t44.47\t51.29\t44.47\t2.01\t1.74\t2.01\t5.03\t4.36\t5.03\t0\t90\t400\t8\t11.25\t100\t400\t10\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_HC\t400\t1100\t2\t350\t50\t1050\t4\t2675\t13375\t60\t56\t0\t275\t220\t990\t1485\t1210\t15\t66\t99\t9.38\t0.63\t105.54\t158.32\t129\t2.7\t1.8\t2.21\t13.51\t9.01\t11.05\t0\t150\t1000\t16\t9.38\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Carrier\t150\t1650\t2\t0\t0\t1600\t4\t3250\t8125\t120\t70\t0\t295\t350\t1290\t1935\t1640\t20\t64.5\t96.75\t71.2\t3.56\t18.12\t27.18\t23.03\t2.52\t1.68\t1.98\t6.3\t4.2\t4.95\t3\t\t\t\t\t\t\t\t\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Corvette\t0\t235\t1\t250\t5\t0\t2\t498\t498\t20\t15\t195\t35\t25\t315\t375\t340\t3\t105\t125\t10\t3.33\t31.5\t37.5\t34\t1.58\t1.33\t1.46\t1.58\t1.33\t1.46\t0\t16\t50\t4\t4\t12\t50\t2\t6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_LF\t50\t610\t1.5\t560\t25\t0\t3\t1310\t1965\t35\t15\t225\t45\t0\t315\t360\t315\t5\t63\t72\t9\t1.8\t35\t40\t35\t4.16\t3.64\t4.16\t6.24\t5.46\t6.24\t0\t45\t150\t5\t9\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Flak\t100\t475\t1.5\t480\t40\t0\t3\t1147\t2294\t30\t18\t275\t40\t35\t425\t500\t460\t4\t106.25\t125\t11.33\t2.83\t37.51\t44.13\t40.6\t2.7\t2.29\t2.49\t5.4\t4.59\t4.99\t0\t8\t0\t1\t8\t10\t50\t3\t3.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Kalve\t150\t715\t1.5\t610\t40\t0\t3\t1569\t3922\t56\t24\t450\t60\t75\t720\t855\t795\t7\t102.86\t122.14\t7.5\t1.07\t96\t114\t106\t2.18\t1.84\t1.97\t5.45\t4.59\t4.93\t0\t75\t600\t10\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_LRF\t200\t800\t2\t775\t60\t0\t4\t2040\t6120\t30\t25\t425\t95\t60\t735\t890\t795\t8\t91.88\t111.25\t13.33\t1.67\t55.14\t66.77\t59.64\t2.78\t2.29\t2.57\t8.33\t6.88\t7.7\t0\t160\t450\t12\t13.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_HC\t400\t950\t2\t900\t85\t0\t4\t2615\t13075\t100\t36\t550\t165\t55\t990\t1210\t1045\t14\t70.71\t86.43\t20\t1.43\t49.5\t60.5\t52.25\t2.64\t2.16\t2.5\t13.21\t10.81\t12.51\t0\t160\t200\t8\t20\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Carrier\t150\t1680\t2\t550\t20\t0\t4\t2340\t5850\t84\t50\t785\t125\t180\t1395\t1700\t1575\t14\t99.64\t121.43\t48\t3.43\t29.06\t35.42\t32.81\t1.68\t1.38\t1.49\t4.19\t3.44\t3.71\t2\t\t\t\t\t\t\t\t\t480\t300\t20\t24\t72\t50\t3\t24\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Orgrov\t200\t1460\t2\t800\t60\t0\t4\t2740\t8220\t36\t32\t625\t180\t200\t1385\t1765\t1585\t12\t115.42\t147.08\t10\t0.83\t138.5\t176.5\t158.5\t1.98\t1.55\t1.73\t5.94\t4.66\t5.19\t0\t300\t1000\t30\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Pirate_LF\t75\t480\t1.5\t615\t50\t0\t0\t1402\t2454\t50\t20\t360\t0\t0\t360\t360\t360\t7\t51.43\t51.43\t13\t1.86\t27.69\t27.69\t27.69\t3.89\t3.89\t3.89\t6.82\t6.82\t6.82\t0\t20\t50\t4\t5\t15\t50\t5\t3\t\t\t\t\t\t\t\t\t15\t50\t5\t3\t2\t0\t2\t1\t2\t0\t2\t1\t\t\t\t
-Pirate_Siege\t150\t630\t1.5\t645\t60\t0\t0\t1662\t4155\t36\t30\t210\t0\t0\t210\t210\t210\t6\t35\t35\t3\t0.5\t70\t70\t70\t7.91\t7.91\t7.91\t19.79\t19.79\t19.79\t0\t15\t50\t5\t3\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Pirate_HC\t400\t910\t2\t965\t90\t0\t0\t2744\t13720\t165\t45\t180\t0\t0\t180\t180\t180\t16\t11.25\t11.25\t31.34\t1.96\t5.74\t5.74\t5.74\t15.24\t15.24\t15.24\t76.22\t76.22\t76.22\t0\t60\t150\t6\t10\t120\t450\t18\t6.67\t\t\t\t\t\t\t\t\t120\t450\t18\t6.67\t40\t50\t5\t8\t\t\t\t\t\t\t\t
-Vas_Kortul\t500\t3175\t3\t960\t132\t1860\t5\t7262\t43572\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t111.5\t2.23\t79.64\t119.46\t97.94\t0.82\t0.55\t0.67\t4.91\t3.27\t3.99\t1\t220\t240\t8\t27.5\t432\t500\t9\t48\t288\t300\t18\t16\t\t\t\t\t360\t600\t18\t20\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_EGG\t500\t4515\t3\t935\t108\t1480\t5\t7940\t47640\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t71\t1.42\t125.07\t187.61\t153.8\t0.89\t0.6\t0.73\t5.36\t3.58\t4.36\t1\t24\t120\t3\t8\t288\t500\t9\t32\t288\t300\t18\t16\t\t\t\t\t18\t0\t1.2\t15\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Skirantra\t500\t4195\t3\t880\t108\t1440\t5\t7465\t44790\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t113\t2.26\t78.58\t117.88\t96.64\t0.84\t0.56\t0.68\t5.04\t3.36\t4.1\t2\t48\t120\t3\t16\t54\t0\t1.2\t45\t576\t300\t18\t32\t\t\t\t\t360\t600\t18\t20\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Marauder\t500\t2680\t3\t915\t120\t1865\t5\t6558\t39348\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t83.67\t1.67\t106.13\t159.2\t130.51\t0.74\t0.49\t0.6\t4.43\t2.95\t3.6\t1\t144\t500\t9\t16\t480\t600\t18\t26.67\t288\t300\t18\t16\t\t\t\t\t60\t180\t6\t10\t18\t0\t1.2\t15\t\t\t\t\t\t\t\t
-Vas_Vulkoras\t500\t2960\t3\t1180\t132\t1620\t5\t7318\t43908\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t116.67\t2.33\t76.11\t114.17\t93.6\t0.82\t0.55\t0.67\t4.94\t3.3\t4.02\t1\t1200\t600\t18\t66.67\t216\t500\t9\t24\t288\t300\t18\t16\t\t\t\t\t60\t180\t6\t10\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Vorastra\t750\t11280\t6\t1740\t156\t5120\t10\t20854\t177259\t840\t300\t0\t7835\t7090\t29850\t44775\t36940\t150\t128\t192\t576.67\t3.84\t51.76\t77.64\t64.06\t0.7\t0.47\t0.56\t5.94\t3.96\t4.8\t0\t108\t0\t1.2\t90\t360\t500\t6\t60\t\t\t\t\t\t\t\t\t1980\t240\t9\t220\t3720\t600\t18\t206.67\t\t\t\t\t\t\t\t
-Vas_Kultorask\t750\t7620\t6\t1560\t156\t5340\t10\t16954\t144109\t840\t300\t0\t7835\t7090\t29850\t44775\t36940\t150\t128\t192\t671.99\t4.48\t44.42\t66.63\t54.97\t0.57\t0.38\t0.46\t4.83\t3.22\t3.9\t2\t960\t600\t18\t53.33\t960\t600\t18\t53.33\t576\t300\t18\t32\t\t\t\t\t2640\t240\t9\t293.33\t144\t0\t1.2\t120\t720\t500\t6\t120\t\t\t\t
-Adv_Radiance\t500\t3150\t3\t975\t80\t3300\t5\t8205\t49230\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t118.41\t2.37\t62.49\t80.23\t72\t1.11\t0.86\t0.96\t6.65\t5.18\t5.77\t1\t400\t500\t14\t28.57\t150\t750\t16\t9.38\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t90\t600\t7\t12.86\t210\t50\t5\t42\t\t\t\t\t\t\t\t
-Adv_Progen\t500\t3650\t3\t525\t80\t3200\t5\t7795\t46770\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t83.1\t1.66\t89.05\t114.32\t102.59\t1.05\t0.82\t0.91\t6.32\t4.92\t5.49\t1\t150\t750\t12\t12.5\t6\t0\t2\t3\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t210\t150\t5\t42\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Halcyon\t500\t3550\t3\t425\t80\t3400\t5\t7715\t46290\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t119.2\t2.38\t62.08\t79.7\t71.52\t1.04\t0.81\t0.9\t6.26\t4.87\t5.43\t3\t360\t400\t10\t36\t24\t0\t2\t12\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Rapture\t500\t2750\t3\t715\t80\t2900\t5\t6937\t41622\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t116.61\t2.33\t63.46\t81.47\t73.11\t0.94\t0.73\t0.81\t5.62\t4.38\t4.88\t1\t400\t0\t8.5\t47.06\t150\t750\t16\t9.38\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t400\t500\t14\t28.57\t12\t0\t2\t6\t\t\t\t\t\t\t\t
-Adv_Revelation\t500\t3400\t3\t480\t80\t3200\t5\t7464\t44784\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t97.39\t1.95\t75.98\t97.55\t87.53\t1.01\t0.79\t0.88\t6.05\t4.71\t5.25\t1\t150\t750\t12\t12.5\t300\t0\t8.5\t35.29\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t0\t0\t100\t0\t120\t150\t5\t24\t\t\t\t\t\t\t\t
-Adv_Eradica\t750\t7950\t6\t1250\t125\t8200\t10\t18962\t161177\t840\t300\t13150\t4100\t4775\t30900\t39775\t35675\t150\t123.33\t160\t251.8\t1.68\t122.72\t157.96\t141.68\t0.61\t0.48\t0.53\t5.22\t4.05\t4.52\t5\t450\t750\t12\t37.5\t360\t150\t5\t72\t600\t300\t15\t40\t192\t50\t2.5\t76.8\t51\t0\t2\t25.5\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Coronata\t750\t6750\t6\t1045\t125\t7000\t10\t16101\t136858\t840\t300\t13150\t4100\t4775\t30900\t39775\t35675\t150\t123.33\t160\t329.49\t2.2\t93.78\t120.72\t108.27\t0.52\t0.4\t0.45\t4.43\t3.44\t3.84\t3\t1600\t500\t14\t114.29\t63\t0\t2\t31.5\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t675\t250\t6\t112.5\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Kol\t500\t3100\t3\t1710\t120\t1550\t5\t8412\t50472\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t86\t1.72\t94.19\t119.77\t105.52\t1.04\t0.82\t0.93\t6.23\t4.9\t5.56\t0\t360\t600\t12\t30\t180\t150\t5\t36\t\t\t\t\t\t\t\t\t60\t50\t3\t20\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Akkan\t500\t3620\t3\t1285\t90\t1220\t5\t7282\t43692\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t44\t0.88\t184.09\t234.09\t206.25\t0.9\t0.71\t0.8\t5.39\t4.24\t4.81\t0\t180\t150\t5\t36\t8\t0\t1\t8\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Dunov\t500\t3345\t3\t1520\t90\t1150\t5\t7383\t44298\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t109.33\t2.19\t74.09\t94.21\t83.01\t0.91\t0.72\t0.81\t5.47\t4.3\t4.88\t1\t400\t600\t12\t33.33\t180\t150\t5\t36\t0\t300\t20\t0\t72\t50\t3\t24\t16\t0\t1\t16\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Sova\t500\t2880\t3\t1500\t90\t985\t5\t6715\t40290\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t108.67\t2.17\t74.54\t94.78\t83.51\t0.83\t0.65\t0.74\t4.97\t3.91\t4.44\t2\t20\t50\t3\t6.67\t90\t150\t5\t18\t480\t300\t20\t24\t72\t50\t3\t24\t36\t0\t1\t36\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Marza\t500\t4265\t3\t1220\t90\t1100\t5\t7683\t46098\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t95\t1.9\t85.26\t108.42\t95.53\t0.95\t0.75\t0.85\t5.69\t4.48\t5.08\t0\t600\t600\t12\t50\t270\t600\t10\t27\t\t\t\t\t\t\t\t\t90\t150\t5\t18\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Ankylon\t750\t9520\t6\t3450\t150\t5000\t10\t23145\t196732\t840\t300\t15250\t4500\t3675\t31600\t39775\t35275\t150\t128\t160\t216\t1.44\t146.3\t184.14\t163.31\t0.73\t0.58\t0.66\t6.23\t4.95\t5.58\t0\t720\t150\t5\t144\t72\t0\t1\t72\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Ragnarov\t750\t8550\t6\t2240\t120\t4275\t10\t17753\t150900\t840\t300\t15250\t4500\t3675\t31600\t39775\t35275\t150\t128\t160\t470\t3.13\t67.23\t84.63\t75.05\t0.56\t0.45\t0.5\t4.78\t3.79\t4.28\t0\t1440\t600\t10\t144\t2160\t600\t12\t180\t\t\t\t\t\t\t\t\t56\t0\t1\t56\t450\t150\t5\t90\t\t\t\t\t\t\t\t
-TEC_Turret\t600\t1000\t3\t750\t100\t0\t0\t2500\t17500\t50\t60\t500\t125\t25\t800\t950\t825\t0\t0\t0\t32\t0\t25\t29.69\t25.78\t3.12\t2.63\t3.03\t21.88\t18.42\t21.21\t0\t160\t200\t5\t32\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Gauss_Turret\t600\t1200\t3\t800\t100\t0\t0\t2800\t19600\t50\t60\t650\t150\t75\t1100\t1325\t1175\t0\t0\t0\t27\t0\t40.74\t49.07\t43.52\t2.55\t2.11\t2.38\t17.82\t14.79\t16.68\t0\t270\t600\t10\t27\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Hangar\t600\t1750\t4\t1000\t100\t0\t0\t3750\t26250\t75\t60\t500\t150\t125\t1050\t1325\t1175\t0\t0\t0\t56\t0\t18.75\t23.66\t20.98\t3.57\t2.83\t3.19\t25\t19.81\t22.34\t2\t8\t0\t1\t8\t\t\t\t\t480\t300\t20\t24\t72\t50\t3\t24\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Turret\t600\t850\t3\t500\t80\t750\t5\t2500\t17500\t50\t60\t550\t150\t0\t850\t1000\t850\t0\t0\t0\t37.5\t0\t22.67\t26.67\t22.67\t2.94\t2.5\t2.94\t20.59\t17.5\t20.59\t0\t225\t200\t6\t37.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Beam_Turret\t600\t1000\t3\t550\t80\t900\t5\t2890\t20230\t50\t60\t700\t0\t125\t950\t1075\t1075\t0\t0\t0\t28.57\t0\t33.25\t37.63\t37.63\t3.04\t2.69\t2.69\t21.29\t18.82\t18.82\t0\t400\t500\t14\t28.57\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Hangar\t600\t2500\t4\t900\t80\t2250\t6\t6370\t44590\t100\t90\t0\t200\t350\t1100\t1650\t1450\t0\t0\t0\t71.2\t0\t15.45\t23.17\t20.37\t5.79\t3.86\t4.39\t40.54\t27.02\t30.75\t3\t\t\t\t\t\t\t\t\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Turret\t600\t1260\t3\t660\t96\t0\t0\t2554\t17878\t50\t60\t0\t210\t60\t540\t810\t600\t0\t0\t0\t36\t0\t15\t22.5\t16.67\t4.73\t3.15\t4.26\t33.11\t22.07\t29.8\t0\t180\t200\t5\t36\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Missile_Turret\t600\t1440\t3\t720\t96\t0\t0\t2851\t19957\t50\t60\t0\t240\t120\t720\t1080\t840\t0\t0\t0\t40\t0\t18\t27\t21\t3.96\t2.64\t3.39\t27.72\t18.48\t23.76\t0\t360\t600\t9\t40\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-TEC_Starbase\t1000\t6000\t8\t1500\t120\t2500\t10\t11800\t129800\t2000\t180\t2000\t585\t415\t4000\t5000\t4415\t0\t0\t0\t485.33\t0\t8.24\t10.3\t9.1\t2.95\t2.36\t2.67\t32.45\t25.96\t29.4\t0\t1440\t150\t5\t288\t400\t50\t3\t133.33\t\t\t\t\t\t\t\t\t64\t0\t1\t64\t\t\t\t\t\t\t\t\t\t\t\t
-Adv_Starbase\t1000\t5000\t8\t1000\t100\t5000\t10\t12000\t132000\t2000\t180\t2000\t450\t550\t4000\t5000\t4550\t0\t0\t0\t333.6\t0\t11.99\t14.99\t13.64\t3\t2.4\t2.64\t33\t26.4\t29.01\t2\t1320\t150\t5\t264\t48\t0\t2\t24\t300\t300\t15\t20\t64\t50\t2.5\t25.6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
-Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t1080\t920\t4000\t6000\t4920\t0\t0\t0\t736.67\t0\t5.43\t8.14\t6.68\t2.42\t1.61\t1.96\t26.57\t17.71\t21.6\t2\t840\t200\t5\t168\t1980\t240\t9\t220\t576\t300\t18\t32\t\t\t\t\t1200\t600\t18\t66.67\t720\t600\t18\t40\t540\t500\t6\t90\t144\t0\t1.2\t120`;
-
 
         function populateShipSelects() {
             const attackerContainer = document.getElementById('attackerContainer');
@@ -696,6 +631,10 @@ Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t108
             addShipGroup('attacker');
             addShipGroup('defender');
 
+            // Setup ship groups after data is loaded
+            setupShipGroups('attacker');
+            setupShipGroups('defender');
+
             // Add event listener for the calculate damage button
             document.getElementById('calculateDamage').addEventListener('click', calculateDamage);
 
@@ -797,6 +736,7 @@ Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t108
         }
 
         function populateShipSelect(selectElement) {
+            selectElement.innerHTML = '<option value="">Select Ship</option>';
             shipData.forEach(ship => {
                 const option = new Option(ship.Ship, ship.Ship);
                 selectElement.add(option);
