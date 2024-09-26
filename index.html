@@ -169,25 +169,12 @@
     </div>
 
     <script>
-        const shipData = [];
+        let shipData = [];
 
         async function loadShipData() {
             try {
-                const response = await fetch('assets/sins_data.csv');
-                const data = await response.text();
-                const rows = data.split('\n');
-                const headers = rows[0].split(',');
-
-                for (let i = 1; i < rows.length; i++) {
-                    const values = rows[i].split(',');
-                    if (values.length === headers.length) {
-                        const ship = {};
-                        for (let j = 0; j < headers.length; j++) {
-                            ship[headers[j]] = values[j].trim() === '' ? null : isNaN(values[j]) ? values[j].trim() : parseFloat(values[j]);
-                        }
-                        shipData.push(ship);
-                    }
-                }
+                const response = await fetch('assets/sins_data.json');
+                shipData = await response.json();
                 console.log('Loaded ship data:', shipData);
                 setupShipGroups('attacker');
                 setupShipGroups('defender');
