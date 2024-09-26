@@ -355,6 +355,14 @@
 
 
 
+        function calculateEffectiveHealth(ships, enemyDamageMod, ownArmorStrengthMod) {
+            return ships.reduce((total, { ship, count }) => {
+                const effectiveArmor = ship.Armor * (1 + (ship.Armor_Strength + ownArmorStrengthMod) / 100);
+                const effectiveHealth = (ship.Hull + effectiveArmor + ship.Shields) * count;
+                return total + effectiveHealth;
+            }, 0);
+        }
+
         function calculateDamage() {
             const attackerHullMod = 1 + (parseFloat(document.getElementById('attackerHullMod').value) || 0) / 100;
             const attackerShieldMod = 1 + (parseFloat(document.getElementById('attackerShieldMod').value) || 0) / 100;
@@ -424,14 +432,19 @@
                                 totalDamage += effectiveDamage;
 
                                 const additionalEHP = effectiveArmor - defender.ship.Armor;
+                                const pierceEffectiveness = (defender.ship.Durability > 0) ? 
+                                    Math.min(100, (pen / defender.ship.Durability * 100)) : 100;
 
                                 damageBreakdown += `
-                                    <p>Attacker ${attackerIndex + 1} Weapon ${i} vs Defender ${defenderIndex + 1}:</p>
-                                    <p>Total Damage: ${effectiveDamage.toFixed(2)}</p>
-                                    <p>Damage to Armor: ${damageToArmor.toFixed(2)}</p>
-                                    <p>Damage to Hull: ${damageToHull.toFixed(2)}</p>
-                                    <p>Durability Efficiency: ${(durabilityMultiplier * 100).toFixed(2)}%</p>
-                                    <p>Additional EHP from Armor: ${additionalEHP.toFixed(2)}</p>
+                                    <div class="mb-4 p-4 bg-indigo-800 rounded">
+                                        <h4 class="font-semibold text-lg mb-2">Attacker ${attackerIndex + 1} Weapon ${i} vs Defender ${defenderIndex + 1}:</h4>
+                                        <p><strong>Total Damage:</strong> ${effectiveDamage.toFixed(2)}</p>
+                                        <p><strong>Damage to Armor:</strong> ${damageToArmor.toFixed(2)}</p>
+                                        <p><strong>Damage to Hull:</strong> ${damageToHull.toFixed(2)}</p>
+                                        <p><strong>Pierce Effectiveness:</strong> ${pierceEffectiveness.toFixed(2)}%</p>
+                                        <p><strong>Durability Efficiency:</strong> ${(durabilityMultiplier * 100).toFixed(2)}%</p>
+                                        <p><strong>Additional EHP from Armor:</strong> ${additionalEHP.toFixed(2)}</p>
+                                    </div>
                                 `;
                             }
                         }
@@ -451,11 +464,41 @@
                 const damageOutput = document.getElementById('damageOutput');
                 const researchBonus = document.getElementById('researchBonus');
 
-                // Battle Overview
-                const attackerAdvantage = totalAttackerDPS / totalDefenderHealth;
-                const defenderAdvantage = totalDefenderHealth / totalAttackerDPS;
-                const advantageRatio = attackerAdvantage / defenderAdvantage;
+                // Calculate effective health pools
+                const effectiveAttackerHealth = calculateEffectiveHealth(attackers, defenderDamageMod, attackerArmorStrengthMod);
+                const effectiveDefenderHealth = calculateEffectiveHealth(defenders, attackerDamageMod, defenderArmorStrengthMod);
 
+                // Calculate average pierce and durability
+                let totalAttackerPierce = 0;
+                let totalAttackerDPSForPierce = 0;
+                let totalDefenderDurability = 0;
+                let totalDefenderEffectiveHP = 0;
+
+                attackers.forEach(attacker => {
+                    for (let i = 1; i <= 6; i++) {
+                        const damage = attacker.ship[`Damage_${i}`];
+                        const pen = attacker.ship[`Pen_${i}`];
+                        const dps = attacker.ship[`DPS_${i}`];
+                        if (damage && pen !== undefined && dps) {
+                            totalAttackerPierce += pen * dps * attacker.count;
+                            totalAttackerDPSForPierce += dps * attacker.count;
+                        }
+                    }
+                });
+
+                defenders.forEach(defender => {
+                    const effectiveHP = defender.ship.Hull + defender.ship.Armor * (1 + defender.ship.Armor_Strength / 100) + defender.ship.Shields;
+                    totalDefenderDurability += defender.ship.Durability * effectiveHP * defender.count;
+                    totalDefenderEffectiveHP += effectiveHP * defender.count;
+                });
+
+                const averageAttackerPierce = totalAttackerPierce / totalAttackerDPSForPierce;
+                const averageDefenderDurability = totalDefenderDurability / totalDefenderEffectiveHP;
+
+                const effectiveDPSMultiplier = 100 / (100 + Math.max(0, averageDefenderDurability - averageAttackerPierce));
+                const averageEffectiveDPS = totalAttackerDPS * effectiveDPSMultiplier;
+
+                // Battle Overview
                 battleOverview.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
                         <div class="text-center">
@@ -474,22 +517,29 @@
                             <p class="text-sm">Supply</p>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <h4 class="font-semibold mb-2">Battle Advantage</h4>
-                        <div class="w-full bg-gray-700 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${(advantageRatio / (1 + advantageRatio)) * 100}%"></div>
-                        </div>
-                        <p class="text-sm mt-1 text-center">${advantageRatio > 1 ? 'Attackers' : 'Defenders'} have the advantage</p>
-                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <h4 class="font-semibold">Attacker Strength</h4>
-                            <p class="text-lg">${totalAttackerDPS.toFixed(2)} DPS</p>
+                            <p class="text-lg">${totalAttackerDPS.toFixed(2)} Raw DPS</p>
+                            <p class="text-sm">Effective Health: ${effectiveAttackerHealth.toFixed(2)} HP</p>
                         </div>
                         <div>
-                            <h4 class="font-semibold">Defender Health</h4>
-                            <p class="text-lg">${totalDefenderHealth.toFixed(2)} HP</p>
+                            <h4 class="font-semibold">Defender Strength</h4>
+                            <p class="text-lg">${totalDefenderDPS.toFixed(2)} Raw DPS</p>
+                            <p class="text-sm">Effective Health: ${effectiveDefenderHealth.toFixed(2)} HP</p>
                         </div>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Effective DPS Analysis</h4>
+                        <p>Average Attacker Pierce: ${averageAttackerPierce.toFixed(2)}</p>
+                        <p>Average Defender Durability: ${averageDefenderDurability.toFixed(2)}</p>
+                        <p>Effective DPS Multiplier: ${(effectiveDPSMultiplier * 100).toFixed(2)}%</p>
+                        <p class="text-lg font-semibold">Effective Attacker DPS: ${averageEffectiveDPS.toFixed(2)}</p>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Time to Kill Comparison</h4>
+                        <p>Attackers will deplete Defenders' health in: ${(effectiveDefenderHealth / averageEffectiveDPS).toFixed(2)}s</p>
+                        <p>Defenders will deplete Attackers' health in: ${(effectiveAttackerHealth / totalDefenderDPS).toFixed(2)}s</p>
                     </div>
                 `;
 
