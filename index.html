@@ -174,7 +174,13 @@
         async function loadShipData() {
             try {
                 const response = await fetch('assets/sins_data.json');
-                shipData = await response.json();
+                const jsonData = await response.json();
+                shipData = Object.entries(jsonData).map(([shipName, shipStats]) => {
+                    return {
+                        Ship: shipName,
+                        ...shipStats
+                    };
+                });
                 console.log('Loaded ship data:', shipData);
                 setupShipGroups('attacker');
                 setupShipGroups('defender');
@@ -683,6 +689,10 @@ Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t108
             addShipGroup('attacker');
             addShipGroup('defender');
 
+            // Setup ship groups after data is loaded
+            setupShipGroups('attacker');
+            setupShipGroups('defender');
+
             // Add event listener for the calculate damage button
             document.getElementById('calculateDamage').addEventListener('click', calculateDamage);
 
@@ -784,6 +794,7 @@ Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t108
         }
 
         function populateShipSelect(selectElement) {
+            selectElement.innerHTML = '<option value="">Select Ship</option>';
             shipData.forEach(ship => {
                 const option = new Option(ship.Ship, ship.Ship);
                 selectElement.add(option);
