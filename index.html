@@ -468,6 +468,36 @@
                 const effectiveAttackerHealth = calculateEffectiveHealth(attackers, defenderDamageMod, attackerArmorStrengthMod);
                 const effectiveDefenderHealth = calculateEffectiveHealth(defenders, attackerDamageMod, defenderArmorStrengthMod);
 
+                // Calculate average pierce and durability
+                let totalAttackerPierce = 0;
+                let totalAttackerDPSForPierce = 0;
+                let totalDefenderDurability = 0;
+                let totalDefenderEffectiveHP = 0;
+
+                attackers.forEach(attacker => {
+                    for (let i = 1; i <= 6; i++) {
+                        const damage = attacker.ship[`Damage_${i}`];
+                        const pen = attacker.ship[`Pen_${i}`];
+                        const dps = attacker.ship[`DPS_${i}`];
+                        if (damage && pen !== undefined && dps) {
+                            totalAttackerPierce += pen * dps * attacker.count;
+                            totalAttackerDPSForPierce += dps * attacker.count;
+                        }
+                    }
+                });
+
+                defenders.forEach(defender => {
+                    const effectiveHP = defender.ship.Hull + defender.ship.Armor * (1 + defender.ship.Armor_Strength / 100) + defender.ship.Shields;
+                    totalDefenderDurability += defender.ship.Durability * effectiveHP * defender.count;
+                    totalDefenderEffectiveHP += effectiveHP * defender.count;
+                });
+
+                const averageAttackerPierce = totalAttackerPierce / totalAttackerDPSForPierce;
+                const averageDefenderDurability = totalDefenderDurability / totalDefenderEffectiveHP;
+
+                const effectiveDPSMultiplier = 100 / (100 + Math.max(0, averageDefenderDurability - averageAttackerPierce));
+                const averageEffectiveDPS = totalAttackerDPS * effectiveDPSMultiplier;
+
                 // Battle Overview
                 battleOverview.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
@@ -542,36 +572,6 @@
 
                 const averageEffectiveAttackerDPS = totalEffectiveAttackerDPS / defenders.length;
                 const averageEffectiveDefenderDPS = totalEffectiveDefenderDPS / attackers.length;
-
-                // Calculate average pierce and durability
-                let totalAttackerPierce = 0;
-                let totalAttackerDPSForPierce = 0;
-                let totalDefenderDurability = 0;
-                let totalDefenderEffectiveHP = 0;
-
-                attackers.forEach(attacker => {
-                    for (let i = 1; i <= 6; i++) {
-                        const damage = attacker.ship[`Damage_${i}`];
-                        const pen = attacker.ship[`Pen_${i}`];
-                        const dps = attacker.ship[`DPS_${i}`];
-                        if (damage && pen !== undefined && dps) {
-                            totalAttackerPierce += pen * dps * attacker.count;
-                            totalAttackerDPSForPierce += dps * attacker.count;
-                        }
-                    }
-                });
-
-                defenders.forEach(defender => {
-                    const effectiveHP = defender.ship.Hull + defender.ship.Armor * (1 + defender.ship.Armor_Strength / 100) + defender.ship.Shields;
-                    totalDefenderDurability += defender.ship.Durability * effectiveHP * defender.count;
-                    totalDefenderEffectiveHP += effectiveHP * defender.count;
-                });
-
-                const averageAttackerPierce = totalAttackerPierce / totalAttackerDPSForPierce;
-                const averageDefenderDurability = totalDefenderDurability / totalDefenderEffectiveHP;
-
-                const effectiveDPSMultiplier = 100 / (100 + Math.max(0, averageDefenderDurability - averageAttackerPierce));
-                const averageEffectiveDPS = totalAttackerDPS * effectiveDPSMultiplier;
 
                 // Detailed Battle Statistics
                 battleStats.innerHTML = `
