@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sins of a Solar Empire 2 Ship Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-image: url("https://www.stardock.com/sinsofasolarempire/sinsofasolarempire2/press/sins-screenshots/steamrelease/sins2_steamrelease_05.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+        }
+        
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        .glassmorphism {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .collapsible {
+            background-color: rgba(99, 102, 241, 0.2);
+            color: #ffffff;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            transition: 0.4s;
+            border-radius: 5px;
+        }
+
+        .active, .collapsible:hover {
+            background-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .content.show {
+            max-height: 1000px; /* Adjust this value as needed */
+        }
+
+        .efficiency-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            text-align: right;
+            color: white;
+            font-size: 12px;
+            line-height: 20px;
+            padding-right: 5px;
+        }
+
+        .ship-group {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ship-details {
+            display: none;
+        }
+
+        .show-details {
+            background-color: rgba(99, 102, 241, 0.2);
+            color: #ffffff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .show-details:hover {
+            background-color: rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-8 text-center text-indigo-300 drop-shadow-lg">Sins of a Solar Empire 2 Ship Calculator</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glassmorphism p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-200">Attackers</h2>
+                <div id="attackerContainer"></div>
+                <button id="addAttacker" class="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">Add Attacker Ship</button>
+            </div>
+            
+            <div class="glassmorphism p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-200">Defenders</h2>
+                <div id="defenderContainer"></div>
+                <button id="addDefender" class="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">Add Defender Ship</button>
+            </div>
+        </div>
+        
+        <div class="mt-8 glassmorphism p-6">
+            <button class="collapsible mb-4 w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">Global Modifiers</button>
+            <div class="content mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2 text-indigo-200">Attacker Modifiers</h3>
+                        <input type="number" id="attackerHullMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Hull Modifier (%)" min="0">
+                        <input type="number" id="attackerShieldMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Shield Modifier (%)" min="0">
+                        <input type="number" id="attackerDamageMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Damage Modifier (%)" min="0">
+                        <input type="number" id="attackerArmorStrengthMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Additional Armor Strength" min="0">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2 text-indigo-200">Defender Modifiers</h3>
+                        <input type="number" id="defenderHullMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Hull Modifier (%)" min="0">
+                        <input type="number" id="defenderShieldMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Shield Modifier (%)" min="0">
+                        <input type="number" id="defenderDamageMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Damage Modifier (%)" min="0">
+                        <input type="number" id="defenderArmorStrengthMod" class="w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Additional Armor Strength" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 glassmorphism p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-indigo-200">Battle Results</h2>
+            <div class="flex justify-between mb-4">
+                <button id="calculateDamage" class="w-1/2 p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors mr-2">Calculate Damage</button>
+                <button id="swapSides" class="w-1/2 p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors ml-2">Swap Sides</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="battle-overview glassmorphism p-4">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-300">Battle Overview</h3>
+                    <div id="battleOverview" class="text-indigo-100"></div>
+                </div>
+                <div class="damage-calculation glassmorphism p-4">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-300">Damage Calculation</h3>
+                    <div id="damageOutput" class="text-indigo-100"></div>
+                </div>
+            </div>
+            <div class="mt-6 glassmorphism p-4">
+                <h3 class="text-xl font-semibold mb-3 text-indigo-300">Detailed Battle Statistics</h3>
+                <div id="battleStats" class="text-indigo-100"></div>
+            </div>
+            <div class="mt-6 glassmorphism p-4">
+                <h3 class="text-xl font-semibold mb-3 text-indigo-300">Research Bonuses</h3>
+                <div id="researchBonus" class="text-indigo-100"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const shipData = [];
+
+        async function loadShipData() {
+            try {
+                const response = await fetch('assets/sins_data.csv');
+                const data = await response.text();
+                const rows = data.split('\n');
+                const headers = rows[0].split(',');
+
+                for (let i = 1; i < rows.length; i++) {
+                    const values = rows[i].split(',');
+                    if (values.length === headers.length) {
+                        const ship = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            ship[headers[j]] = values[j].trim() === '' ? null : isNaN(values[j]) ? values[j].trim() : parseFloat(values[j]);
+                        }
+                        shipData.push(ship);
+                    }
+                }
+                console.log('Loaded ship data:', shipData);
+                setupShipGroups('attacker');
+                setupShipGroups('defender');
+            } catch (error) {
+                console.error('Error loading ship data:', error);
+            }
+        }
+
+        function calculateEffectiveDPS(attackerShip, defenderShip, damageMod, additionalArmorStrength) {
+            let totalEffectiveDPS = 0;
+            for (let i = 1; i <= 6; i++) {
+                const damage = attackerShip[`Damage_${i}`] * damageMod;
+                const pen = attackerShip[`Pen_${i}`];
+                const dps = attackerShip[`DPS_${i}`] * damageMod;
+
+                if (damage && pen !== undefined && dps) {
+                    const effectiveDurability = Math.max(0, defenderShip.Durability - pen);
+                    const durabilityMultiplier = 100 / (100 + effectiveDurability);
+                    const armorStrengthMultiplier = 100 / (100 + defenderShip.Armor_Strength + additionalArmorStrength);
+                    const effectiveArmor = defenderShip.Armor * (1 + (defenderShip.Armor_Strength + additionalArmorStrength) / 100);
+                    const damageToArmor = Math.min(damage * durabilityMultiplier, effectiveArmor);
+                    const damageToHull = Math.max(0, (damage * durabilityMultiplier) - effectiveArmor);
+                    const effectiveDamage = (damageToArmor + damageToHull);
+                    totalEffectiveDPS += (effectiveDamage / attackerShip[`Gun_CD_${i}`]);
+                }
+            }
+            return totalEffectiveDPS;
+        }
+
+        const allowedShips = [
+            "Vas_Scout", "Vas_Raider", "Vas_Defensor", "Vas_LF", "Vas_LRF", "Vas_HC", "Vas_Carrier", "Vas_Penetrator",
+            "Adv_Corvette", "Adv_LF", "Adv_Tempests", "Adv_Flak", "Adv_LRF", "Adv_HC", "Adv_Carrier",
+            "TEC_Corvette", "TEC_LF", "TEC_Flak", "TEC_Kalve", "TEC_LRF", "TEC_HC", "TEC_Carrier", "TEC_Orgrov",
+            "Pirate_LF", "Pirate_Siege", "Pirate_HC",
+            "Vas_Kortul", "Vas_EGG", "Vas_Skirantra", "Vas_Marauder", "Vas_Vulkoras", "Vas_Vorastra", "Vas_Kultorask",
+            "Adv_Radiance", "Adv_Progen", "Adv_Halcyon", "Adv_Rapture", "Adv_Revelation", "Adv_Eradica", "Adv_Coronata",
+            "TEC_Kol", "TEC_Akkan", "TEC_Dunov", "TEC_Sova", "TEC_Marza", "TEC_Ankylon", "TEC_Ragnarov",
+            "TEC_Turret", "TEC_Gauss_Turret", "TEC_Hangar", "Adv_Turret", "Adv_Beam_Turret", "Adv_Hangar",
+            "Vas_Turret", "Vas_Missile_Turret", "TEC_Starbase", "Adv_Starbase", "Vas_Starbase"
+        ];
+Vas_Raider\t0\t415\t1\t120\t18\t245\t2\t802\t802\t24\t22\t0\t75\t45\t240\t360\t285\t5\t48\t72\t6.67\t1.33\t35.98\t53.97\t42.73\t3.34\t2.23\t2.81\t3.34\t2.23\t2.81\t0\t16\t150\t4\t4\t48\t300\t18\t2.67\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Defensor\t0\t335\t1\t120\t18\t270\t2\t747\t747\t24\t18\t0\t65\t25\t180\t270\t205\t4\t45\t67.5\t9.33\t2.33\t19.29\t28.94\t21.97\t4.15\t2.77\t3.64\t4.15\t2.77\t3.64\t0\t18\t50\t3\t6\t6\t0\t1.8\t3.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_LF\t60\t720\t1.5\t375\t48\t495\t3\t1770\t2832\t42\t22\t0\t110\t15\t250\t375\t265\t7\t35.71\t53.57\t12\t1.71\t20.83\t31.25\t22.08\t7.08\t4.72\t6.68\t11.33\t7.55\t10.69\t0\t48\t150\t4\t12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_LRF\t120\t795\t1.5\t225\t48\t420\t3\t1548\t3406\t48\t24\t0\t125\t35\t320\t480\t355\t6\t53.33\t80\t12\t2\t26.67\t40\t29.58\t4.84\t3.23\t4.36\t10.64\t7.1\t9.59\t0\t144\t450\t12\t12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_HC\t400\t985\t2\t625\t96\t660\t4\t2870\t14350\t120\t41\t0\t335\t180\t1030\t1545\t1210\t15\t68.67\t103\t27.5\t1.83\t37.45\t56.18\t44\t2.79\t1.86\t2.37\t13.93\t9.29\t11.86\t0\t120\t180\t6\t20\t9\t0\t1.2\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Carrier\t180\t1260\t2\t565\t72\t600\t4\t2832\t7930\t90\t52\t0\t265\t325\t1180\t1770\t1505\t15\t78.67\t118\t47\t3.13\t25.11\t37.66\t32.02\t2.4\t1.6\t1.88\t6.72\t4.48\t5.27\t2\t18\t0\t1.2\t15\t\t\t\t\t576\t300\t18\t32\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Penetrator\t400\t660\t2\t925\t120\t720\t4\t3415\t17075\t45\t36\t0\t420\t375\t1590\t2385\t1965\t15\t106\t159\t10\t0.67\t159\t238.5\t196.5\t2.15\t1.43\t1.74\t10.74\t7.16\t8.69\t0\t50\t1000\t5\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Corvette\t0\t450\t1\t0\t0\t300\t2\t750\t750\t20\t15\t195\t0\t40\t275\t315\t315\t4\t68.75\t78.75\t6\t1.5\t45.83\t52.5\t52.5\t2.73\t2.38\t2.38\t2.73\t2.38\t2.38\t0\t30\t50\t5\t6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_LF\t50\t525\t1.5\t0\t0\t550\t3\t1075\t1612\t28\t14\t200\t35\t0\t270\t305\t270\t4\t67.5\t76.25\t8\t2\t33.75\t38.12\t33.75\t3.98\t3.52\t3.98\t5.97\t5.29\t5.97\t0\t40\t150\t5\t8\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Tempests\t150\t800\t1.5\t0\t0\t825\t3\t1625\t4062\t48\t25\t0\t65\t80\t290\t435\t370\t6\t48.33\t72.5\t14.12\t2.35\t20.54\t30.81\t26.2\t5.6\t3.74\t4.39\t14.01\t9.34\t10.98\t0\t120\t0\t8.5\t14.12\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Flak\t200\t1000\t2\t400\t50\t900\t4\t2500\t7500\t90\t35\t655\t115\t0\t885\t1000\t885\t9\t98.33\t111.11\t18\t2\t49.17\t55.56\t49.17\t2.82\t2.5\t2.82\t8.47\t7.5\t8.47\t0\t21\t0\t2\t10.5\t45\t50\t6\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_LRF\t150\t975\t2\t0\t0\t925\t4\t1900\t4750\t64\t34\t655\t145\t0\t945\t1090\t945\t8\t118.12\t136.25\t21.25\t2.66\t44.47\t51.29\t44.47\t2.01\t1.74\t2.01\t5.03\t4.36\t5.03\t0\t90\t400\t8\t11.25\t100\t400\t10\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_HC\t400\t1100\t2\t350\t50\t1050\t4\t2675\t13375\t60\t56\t0\t275\t220\t990\t1485\t1210\t15\t66\t99\t9.38\t0.63\t105.54\t158.32\t129\t2.7\t1.8\t2.21\t13.51\t9.01\t11.05\t0\t150\t1000\t16\t9.38\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Carrier\t150\t1650\t2\t0\t0\t1600\t4\t3250\t8125\t120\t70\t0\t295\t350\t1290\t1935\t1640\t20\t64.5\t96.75\t71.2\t3.56\t18.12\t27.18\t23.03\t2.52\t1.68\t1.98\t6.3\t4.2\t4.95\t3\t\t\t\t\t\t\t\t\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Corvette\t0\t235\t1\t250\t5\t0\t2\t498\t498\t20\t15\t195\t35\t25\t315\t375\t340\t3\t105\t125\t10\t3.33\t31.5\t37.5\t34\t1.58\t1.33\t1.46\t1.58\t1.33\t1.46\t0\t16\t50\t4\t4\t12\t50\t2\t6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_LF\t50\t610\t1.5\t560\t25\t0\t3\t1310\t1965\t35\t15\t225\t45\t0\t315\t360\t315\t5\t63\t72\t9\t1.8\t35\t40\t35\t4.16\t3.64\t4.16\t6.24\t5.46\t6.24\t0\t45\t150\t5\t9\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Flak\t100\t475\t1.5\t480\t40\t0\t3\t1147\t2294\t30\t18\t275\t40\t35\t425\t500\t460\t4\t106.25\t125\t11.33\t2.83\t37.51\t44.13\t40.6\t2.7\t2.29\t2.49\t5.4\t4.59\t4.99\t0\t8\t0\t1\t8\t10\t50\t3\t3.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Kalve\t150\t715\t1.5\t610\t40\t0\t3\t1569\t3922\t56\t24\t450\t60\t75\t720\t855\t795\t7\t102.86\t122.14\t7.5\t1.07\t96\t114\t106\t2.18\t1.84\t1.97\t5.45\t4.59\t4.93\t0\t75\t600\t10\t7.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_LRF\t200\t800\t2\t775\t60\t0\t4\t2040\t6120\t30\t25\t425\t95\t60\t735\t890\t795\t8\t91.88\t111.25\t13.33\t1.67\t55.14\t66.77\t59.64\t2.78\t2.29\t2.57\t8.33\t6.88\t7.7\t0\t160\t450\t12\t13.33\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_HC\t400\t950\t2\t900\t85\t0\t4\t2615\t13075\t100\t36\t550\t165\t55\t990\t1210\t1045\t14\t70.71\t86.43\t20\t1.43\t49.5\t60.5\t52.25\t2.64\t2.16\t2.5\t13.21\t10.81\t12.51\t0\t160\t200\t8\t20\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Carrier\t150\t1680\t2\t550\t20\t0\t4\t2340\t5850\t84\t50\t785\t125\t180\t1395\t1700\t1575\t14\t99.64\t121.43\t48\t3.43\t29.06\t35.42\t32.81\t1.68\t1.38\t1.49\t4.19\t3.44\t3.71\t2\t\t\t\t\t\t\t\t\t480\t300\t20\t24\t72\t50\t3\t24\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Orgrov\t200\t1460\t2\t800\t60\t0\t4\t2740\t8220\t36\t32\t625\t180\t200\t1385\t1765\t1585\t12\t115.42\t147.08\t10\t0.83\t138.5\t176.5\t158.5\t1.98\t1.55\t1.73\t5.94\t4.66\t5.19\t0\t300\t1000\t30\t10\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Pirate_LF\t75\t480\t1.5\t615\t50\t0\t0\t1402\t2454\t50\t20\t360\t0\t0\t360\t360\t360\t7\t51.43\t51.43\t13\t1.86\t27.69\t27.69\t27.69\t3.89\t3.89\t3.89\t6.82\t6.82\t6.82\t0\t20\t50\t4\t5\t15\t50\t5\t3\t\t\t\t\t\t\t\t\t15\t50\t5\t3\t2\t0\t2\t1\t2\t0\t2\t1\t\t\t\t
+Pirate_Siege\t150\t630\t1.5\t645\t60\t0\t0\t1662\t4155\t36\t30\t210\t0\t0\t210\t210\t210\t6\t35\t35\t3\t0.5\t70\t70\t70\t7.91\t7.91\t7.91\t19.79\t19.79\t19.79\t0\t15\t50\t5\t3\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Pirate_HC\t400\t910\t2\t965\t90\t0\t0\t2744\t13720\t165\t45\t180\t0\t0\t180\t180\t180\t16\t11.25\t11.25\t31.34\t1.96\t5.74\t5.74\t5.74\t15.24\t15.24\t15.24\t76.22\t76.22\t76.22\t0\t60\t150\t6\t10\t120\t450\t18\t6.67\t\t\t\t\t\t\t\t\t120\t450\t18\t6.67\t40\t50\t5\t8\t\t\t\t\t\t\t\t
+Vas_Kortul\t500\t3175\t3\t960\t132\t1860\t5\t7262\t43572\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t111.5\t2.23\t79.64\t119.46\t97.94\t0.82\t0.55\t0.67\t4.91\t3.27\t3.99\t1\t220\t240\t8\t27.5\t432\t500\t9\t48\t288\t300\t18\t16\t\t\t\t\t360\t600\t18\t20\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_EGG\t500\t4515\t3\t935\t108\t1480\t5\t7940\t47640\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t71\t1.42\t125.07\t187.61\t153.8\t0.89\t0.6\t0.73\t5.36\t3.58\t4.36\t1\t24\t120\t3\t8\t288\t500\t9\t32\t288\t300\t18\t16\t\t\t\t\t18\t0\t1.2\t15\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Skirantra\t500\t4195\t3\t880\t108\t1440\t5\t7465\t44790\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t113\t2.26\t78.58\t117.88\t96.64\t0.84\t0.56\t0.68\t5.04\t3.36\t4.1\t2\t48\t120\t3\t16\t54\t0\t1.2\t45\t576\t300\t18\t32\t\t\t\t\t360\t600\t18\t20\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Marauder\t500\t2680\t3\t915\t120\t1865\t5\t6558\t39348\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t83.67\t1.67\t106.13\t159.2\t130.51\t0.74\t0.49\t0.6\t4.43\t2.95\t3.6\t1\t144\t500\t9\t16\t480\t600\t18\t26.67\t288\t300\t18\t16\t\t\t\t\t60\t180\t6\t10\t18\t0\t1.2\t15\t\t\t\t\t\t\t\t
+Vas_Vulkoras\t500\t2960\t3\t1180\t132\t1620\t5\t7318\t43908\t100\t75\t0\t2400\t2040\t8880\t13320\t10920\t50\t120\t180\t116.67\t2.33\t76.11\t114.17\t93.6\t0.82\t0.55\t0.67\t4.94\t3.3\t4.02\t1\t1200\t600\t18\t66.67\t216\t500\t9\t24\t288\t300\t18\t16\t\t\t\t\t60\t180\t6\t10\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Vorastra\t750\t11280\t6\t1740\t156\t5120\t10\t20854\t177259\t840\t300\t0\t7835\t7090\t29850\t44775\t36940\t150\t128\t192\t576.67\t3.84\t51.76\t77.64\t64.06\t0.7\t0.47\t0.56\t5.94\t3.96\t4.8\t0\t108\t0\t1.2\t90\t360\t500\t6\t60\t\t\t\t\t\t\t\t\t1980\t240\t9\t220\t3720\t600\t18\t206.67\t\t\t\t\t\t\t\t
+Vas_Kultorask\t750\t7620\t6\t1560\t156\t5340\t10\t16954\t144109\t840\t300\t0\t7835\t7090\t29850\t44775\t36940\t150\t128\t192\t671.99\t4.48\t44.42\t66.63\t54.97\t0.57\t0.38\t0.46\t4.83\t3.22\t3.9\t2\t960\t600\t18\t53.33\t960\t600\t18\t53.33\t576\t300\t18\t32\t\t\t\t\t2640\t240\t9\t293.33\t144\t0\t1.2\t120\t720\t500\t6\t120\t\t\t\t
+Adv_Radiance\t500\t3150\t3\t975\t80\t3300\t5\t8205\t49230\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t118.41\t2.37\t62.49\t80.23\t72\t1.11\t0.86\t0.96\t6.65\t5.18\t5.77\t1\t400\t500\t14\t28.57\t150\t750\t16\t9.38\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t90\t600\t7\t12.86\t210\t50\t5\t42\t\t\t\t\t\t\t\t
+Adv_Progen\t500\t3650\t3\t525\t80\t3200\t5\t7795\t46770\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t83.1\t1.66\t89.05\t114.32\t102.59\t1.05\t0.82\t0.91\t6.32\t4.92\t5.49\t1\t150\t750\t12\t12.5\t6\t0\t2\t3\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t210\t150\t5\t42\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Halcyon\t500\t3550\t3\t425\t80\t3400\t5\t7715\t46290\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t119.2\t2.38\t62.08\t79.7\t71.52\t1.04\t0.81\t0.9\t6.26\t4.87\t5.43\t3\t360\t400\t10\t36\t24\t0\t2\t12\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Rapture\t500\t2750\t3\t715\t80\t2900\t5\t6937\t41622\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t116.61\t2.33\t63.46\t81.47\t73.11\t0.94\t0.73\t0.81\t5.62\t4.38\t4.88\t1\t400\t0\t8.5\t47.06\t150\t750\t16\t9.38\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t400\t500\t14\t28.57\t12\t0\t2\t6\t\t\t\t\t\t\t\t
+Adv_Revelation\t500\t3400\t3\t480\t80\t3200\t5\t7464\t44784\t100\t75\t3200\t975\t1125\t7400\t9500\t8525\t50\t94\t121\t97.39\t1.95\t75.98\t97.55\t87.53\t1.01\t0.79\t0.88\t6.05\t4.71\t5.25\t1\t150\t750\t12\t12.5\t300\t0\t8.5\t35.29\t0\t300\t15\t0\t64\t50\t2.5\t25.6\t0\t0\t100\t0\t120\t150\t5\t24\t\t\t\t\t\t\t\t
+Adv_Eradica\t750\t7950\t6\t1250\t125\t8200\t10\t18962\t161177\t840\t300\t13150\t4100\t4775\t30900\t39775\t35675\t150\t123.33\t160\t251.8\t1.68\t122.72\t157.96\t141.68\t0.61\t0.48\t0.53\t5.22\t4.05\t4.52\t5\t450\t750\t12\t37.5\t360\t150\t5\t72\t600\t300\t15\t40\t192\t50\t2.5\t76.8\t51\t0\t2\t25.5\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Coronata\t750\t6750\t6\t1045\t125\t7000\t10\t16101\t136858\t840\t300\t13150\t4100\t4775\t30900\t39775\t35675\t150\t123.33\t160\t329.49\t2.2\t93.78\t120.72\t108.27\t0.52\t0.4\t0.45\t4.43\t3.44\t3.84\t3\t1600\t500\t14\t114.29\t63\t0\t2\t31.5\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t675\t250\t6\t112.5\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Kol\t500\t3100\t3\t1710\t120\t1550\t5\t8412\t50472\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t86\t1.72\t94.19\t119.77\t105.52\t1.04\t0.82\t0.93\t6.23\t4.9\t5.56\t0\t360\t600\t12\t30\t180\t150\t5\t36\t\t\t\t\t\t\t\t\t60\t50\t3\t20\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Akkan\t500\t3620\t3\t1285\t90\t1220\t5\t7282\t43692\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t44\t0.88\t184.09\t234.09\t206.25\t0.9\t0.71\t0.8\t5.39\t4.24\t4.81\t0\t180\t150\t5\t36\t8\t0\t1\t8\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Dunov\t500\t3345\t3\t1520\t90\t1150\t5\t7383\t44298\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t109.33\t2.19\t74.09\t94.21\t83.01\t0.91\t0.72\t0.81\t5.47\t4.3\t4.88\t1\t400\t600\t12\t33.33\t180\t150\t5\t36\t0\t300\t20\t0\t72\t50\t3\t24\t16\t0\t1\t16\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Sova\t500\t2880\t3\t1500\t90\t985\t5\t6715\t40290\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t108.67\t2.17\t74.54\t94.78\t83.51\t0.83\t0.65\t0.74\t4.97\t3.91\t4.44\t2\t20\t50\t3\t6.67\t90\t150\t5\t18\t480\t300\t20\t24\t72\t50\t3\t24\t36\t0\t1\t36\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Marza\t500\t4265\t3\t1220\t90\t1100\t5\t7683\t46098\t100\t75\t3700\t1225\t975\t8100\t10300\t9075\t50\t108\t137\t95\t1.9\t85.26\t108.42\t95.53\t0.95\t0.75\t0.85\t5.69\t4.48\t5.08\t0\t600\t600\t12\t50\t270\t600\t10\t27\t\t\t\t\t\t\t\t\t90\t150\t5\t18\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Ankylon\t750\t9520\t6\t3450\t150\t5000\t10\t23145\t196732\t840\t300\t15250\t4500\t3675\t31600\t39775\t35275\t150\t128\t160\t216\t1.44\t146.3\t184.14\t163.31\t0.73\t0.58\t0.66\t6.23\t4.95\t5.58\t0\t720\t150\t5\t144\t72\t0\t1\t72\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Ragnarov\t750\t8550\t6\t2240\t120\t4275\t10\t17753\t150900\t840\t300\t15250\t4500\t3675\t31600\t39775\t35275\t150\t128\t160\t470\t3.13\t67.23\t84.63\t75.05\t0.56\t0.45\t0.5\t4.78\t3.79\t4.28\t0\t1440\t600\t10\t144\t2160\t600\t12\t180\t\t\t\t\t\t\t\t\t56\t0\t1\t56\t450\t150\t5\t90\t\t\t\t\t\t\t\t
+TEC_Turret\t600\t1000\t3\t750\t100\t0\t0\t2500\t17500\t50\t60\t500\t125\t25\t800\t950\t825\t0\t0\t0\t32\t0\t25\t29.69\t25.78\t3.12\t2.63\t3.03\t21.88\t18.42\t21.21\t0\t160\t200\t5\t32\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Gauss_Turret\t600\t1200\t3\t800\t100\t0\t0\t2800\t19600\t50\t60\t650\t150\t75\t1100\t1325\t1175\t0\t0\t0\t27\t0\t40.74\t49.07\t43.52\t2.55\t2.11\t2.38\t17.82\t14.79\t16.68\t0\t270\t600\t10\t27\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Hangar\t600\t1750\t4\t1000\t100\t0\t0\t3750\t26250\t75\t60\t500\t150\t125\t1050\t1325\t1175\t0\t0\t0\t56\t0\t18.75\t23.66\t20.98\t3.57\t2.83\t3.19\t25\t19.81\t22.34\t2\t8\t0\t1\t8\t\t\t\t\t480\t300\t20\t24\t72\t50\t3\t24\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Turret\t600\t850\t3\t500\t80\t750\t5\t2500\t17500\t50\t60\t550\t150\t0\t850\t1000\t850\t0\t0\t0\t37.5\t0\t22.67\t26.67\t22.67\t2.94\t2.5\t2.94\t20.59\t17.5\t20.59\t0\t225\t200\t6\t37.5\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Beam_Turret\t600\t1000\t3\t550\t80\t900\t5\t2890\t20230\t50\t60\t700\t0\t125\t950\t1075\t1075\t0\t0\t0\t28.57\t0\t33.25\t37.63\t37.63\t3.04\t2.69\t2.69\t21.29\t18.82\t18.82\t0\t400\t500\t14\t28.57\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Hangar\t600\t2500\t4\t900\t80\t2250\t6\t6370\t44590\t100\t90\t0\t200\t350\t1100\t1650\t1450\t0\t0\t0\t71.2\t0\t15.45\t23.17\t20.37\t5.79\t3.86\t4.39\t40.54\t27.02\t30.75\t3\t\t\t\t\t\t\t\t\t300\t300\t15\t20\t128\t50\t2.5\t51.2\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Turret\t600\t1260\t3\t660\t96\t0\t0\t2554\t17878\t50\t60\t0\t210\t60\t540\t810\t600\t0\t0\t0\t36\t0\t15\t22.5\t16.67\t4.73\t3.15\t4.26\t33.11\t22.07\t29.8\t0\t180\t200\t5\t36\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Missile_Turret\t600\t1440\t3\t720\t96\t0\t0\t2851\t19957\t50\t60\t0\t240\t120\t720\t1080\t840\t0\t0\t0\t40\t0\t18\t27\t21\t3.96\t2.64\t3.39\t27.72\t18.48\t23.76\t0\t360\t600\t9\t40\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+TEC_Starbase\t1000\t6000\t8\t1500\t120\t2500\t10\t11800\t129800\t2000\t180\t2000\t585\t415\t4000\t5000\t4415\t0\t0\t0\t485.33\t0\t8.24\t10.3\t9.1\t2.95\t2.36\t2.67\t32.45\t25.96\t29.4\t0\t1440\t150\t5\t288\t400\t50\t3\t133.33\t\t\t\t\t\t\t\t\t64\t0\t1\t64\t\t\t\t\t\t\t\t\t\t\t\t
+Adv_Starbase\t1000\t5000\t8\t1000\t100\t5000\t10\t12000\t132000\t2000\t180\t2000\t450\t550\t4000\t5000\t4550\t0\t0\t0\t333.6\t0\t11.99\t14.99\t13.64\t3\t2.4\t2.64\t33\t26.4\t29.01\t2\t1320\t150\t5\t264\t48\t0\t2\t24\t300\t300\t15\t20\t64\t50\t2.5\t25.6\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+Vas_Starbase\t1000\t4800\t8\t960\t144\t2520\t10\t9662\t106282\t2000\t180\t0\t1080\t920\t4000\t6000\t4920\t0\t0\t0\t736.67\t0\t5.43\t8.14\t6.68\t2.42\t1.61\t1.96\t26.57\t17.71\t21.6\t2\t840\t200\t5\t168\t1980\t240\t9\t220\t576\t300\t18\t32\t\t\t\t\t1200\t600\t18\t66.67\t720\t600\t18\t40\t540\t500\t6\t90\t144\t0\t1.2\t120`;
+
+
+        function populateShipSelects() {
+            const attackerContainer = document.getElementById('attackerContainer');
+            const defenderContainer = document.getElementById('defenderContainer');
+            
+            populateShipSelect(attackerContainer.querySelector('.ship1'));
+            populateShipSelect(defenderContainer.querySelector('.ship2'));
+        }
+
+        function populateShipSelect(selectElement) {
+            selectElement.innerHTML = '<option value="">Select Ship</option>';
+            shipData.forEach(ship => {
+                const option = new Option(ship.Ship, ship.Ship);
+                selectElement.add(option);
+            });
+        }
+
+        function calculateShipCost(ship) {
+            const metalCost = ship.Metal * 2;
+            const crystalCost = ship.Crystal * 3;
+            const totalCost = ship.Credits + metalCost + crystalCost;
+            const costWith21 = ship.Credits + ship.Metal * 2 + ship.Crystal * 2;
+            return {
+                credits: ship.Credits,
+                metal: ship.Metal,
+                crystal: ship.Crystal,
+                total: totalCost,
+                costWith21: costWith21
+            };
+        }
+
+
+        function updateShipDetails(shipElement, detailsElement) {
+            const ship = shipData.find(s => s.Ship === shipElement.value);
+        
+            if (ship) {
+                const cost = calculateShipCost(ship);
+                const totalDPS = ship.Total_DPS || 0;
+                const additionalEHP = ship.Armor * (ship.Armor_Strength / 100);
+        
+                detailsElement.innerHTML = `
+                    <p><strong>Supply:</strong> ${ship.Supply}</p>
+                    <p><strong>Total DPS:</strong> ${totalDPS}</p>
+                    <p><strong>Total HP:</strong> ${ship['Total Health']}</p>
+                    <button class="show-details">Show More Details</button>
+                    <div class="ship-details">
+                        <button class="collapsible">Health Information</button>
+                        <div class="content">
+                            <p><strong>Hull:</strong> ${ship.Hull} (Heal: ${ship.Hull_Heal}/s)</p>
+                            <p><strong>Armor:</strong> ${ship.Armor} (Strength: ${ship.Armor_Strength}%)</p>
+                            <p><strong>Shields:</strong> ${ship.Shields} (Heal: ${ship.Shields_Heal}/s)</p>
+                            <p><strong>Total Health:</strong> ${ship['Total Health']}</p>
+                            <p><strong>Health at 0 Pen:</strong> ${ship['Health at 0 Pen']}</p>
+                            <p><strong>Additional EHP from Armor:</strong> ${additionalEHP.toFixed(2)}</p>
+                            <p><strong>Durability:</strong> ${ship.Durability}</p>
+                        </div>
+
+                        <button class="collapsible">Cost Information</button>
+                        <div class="content">
+                            <p><strong>Credits:</strong> ${cost.credits}</p>
+                            <p><strong>Metal:</strong> ${cost.metal}</p>
+                            <p><strong>Crystal:</strong> ${cost.crystal}</p>
+                            <p><strong>Total Cost (3:1 Crystal):</strong> ${cost.total}</p>
+                            <p><strong>Total Cost (2:1 Crystal):</strong> ${cost.costWith21}</p>
+                            <p><strong>Build Time:</strong> ${ship['Build time']} seconds</p>
+                            <p><strong>XP:</strong> ${ship.XP}</p>
+                        </div>
+
+                        <button class="collapsible">Weapon Information</button>
+                        <div class="content">
+                            ${[1, 2, 3, 4, 5, 6].map(i => 
+                                ship[`Damage_${i}`] && ship[`Pen_${i}`] && ship[`Gun_CD_${i}`] && ship[`DPS_${i}`] ?
+                                `<h4 class="font-semibold mt-2">Weapon ${i}</h4>
+                                <p><strong>Damage Per Volley:</strong> ${ship[`Damage_${i}`]}</p>
+                                <p><strong>Weapon Pierce:</strong> ${ship[`Pen_${i}`]}</p>
+                                <p><strong>Weapon Fire Time:</strong> ${ship[`Gun_CD_${i}`]} seconds</p>
+                                <p><strong>Weapon DPS:</strong> ${ship[`DPS_${i}`]}</p>` : ''
+                            ).join('')}
+                            ${ship['Bomber Dmg'] ? 
+                                `<h4 class="font-semibold mt-2">Bomber</h4>
+                                <p><strong>Damage:</strong> ${ship['Bomber Dmg']}</p>
+                                <p><strong>Pierce:</strong> ${ship['Bomber Pen']}</p>
+                                <p><strong>Cooldown:</strong> ${ship['Bomber CD']} seconds</p>
+                                <p><strong>DPS:</strong> ${ship['Bomber DPS']}</p>` : ''}
+                            ${ship['Fighter Dmg'] ? 
+                                `<h4 class="font-semibold mt-2">Fighter</h4>
+                                <p><strong>Damage:</strong> ${ship['Fighter Dmg']}</p>
+                                <p><strong>Pierce:</strong> ${ship['Fighter Pen']}</p>
+                                <p><strong>Cooldown:</strong> ${ship['Fighter CD']} seconds</p>
+                                <p><strong>DPS:</strong> ${ship['Fighter DPS']}</p>` : ''}
+                        </div>
+
+                        <button class="collapsible">Efficiency Metrics</button>
+                        <div class="content">
+                            <p><strong>DPS per Supply:</strong> ${ship['DPS per Supply']}</p>
+                            <p><strong>HP per Credit (1:2):</strong> ${ship['HP per Credit 1:2']}</p>
+                            <p><strong>HP per Credit (1:3):</strong> ${ship['HP per Credit 1:3']}</p>
+                            <p><strong>HP per Credit (Crystal Heavy):</strong> ${ship['HP per Credit Crystal Heavy']}</p>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners to collapsible elements
+                detailsElement.querySelectorAll(".collapsible").forEach(coll => {
+                    coll.addEventListener("click", function() {
+                        this.classList.toggle("active");
+                        const content = this.nextElementSibling;
+                        if (content.style.maxHeight){
+                            content.style.maxHeight = null;
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                        }
+                    });
+                });
+
+                // Add event listener to show more details button
+                detailsElement.querySelector(".show-details").addEventListener("click", function() {
+                    const shipDetails = this.nextElementSibling;
+                    if (shipDetails.style.display === "none" || shipDetails.style.display === "") {
+                        shipDetails.style.display = "block";
+                        this.textContent = "Hide Details";
+                    } else {
+                        shipDetails.style.display = "none";
+                        this.textContent = "Show More Details";
+                    }
+                });
+            } else {
+                detailsElement.innerHTML = "<p>No ship data found.</p>";
+            }
+        }
+
+
+
+
+        function calculateDamage() {
+            const attackerHullMod = 1 + (parseFloat(document.getElementById('attackerHullMod').value) || 0) / 100;
+            const attackerShieldMod = 1 + (parseFloat(document.getElementById('attackerShieldMod').value) || 0) / 100;
+            const attackerDamageMod = 1 + (parseFloat(document.getElementById('attackerDamageMod').value) || 0) / 100;
+            const attackerArmorStrengthMod = parseFloat(document.getElementById('attackerArmorStrengthMod').value) || 0;
+
+            const defenderHullMod = 1 + (parseFloat(document.getElementById('defenderHullMod').value) || 0) / 100;
+            const defenderShieldMod = 1 + (parseFloat(document.getElementById('defenderShieldMod').value) || 0) / 100;
+            const defenderDamageMod = 1 + (parseFloat(document.getElementById('defenderDamageMod').value) || 0) / 100;
+            const defenderArmorStrengthMod = parseFloat(document.getElementById('defenderArmorStrengthMod').value) || 0;
+
+            const attackers = Array.from(document.querySelectorAll('.attacker-group')).map(group => ({
+                ship: shipData.find(s => s.Ship === group.querySelector('.ship1').value),
+                count: parseInt(group.querySelector('.ship1Count').value) || 1
+            })).filter(a => a.ship);
+
+            const defenders = Array.from(document.querySelectorAll('.defender-group')).map(group => ({
+                ship: shipData.find(s => s.Ship === group.querySelector('.ship2').value),
+                count: parseInt(group.querySelector('.ship2Count').value) || 1
+            })).filter(d => d.ship);
+
+            if (attackers.length > 0 && defenders.length > 0) {
+                const damageOutputElement = document.getElementById('damageOutput');
+                const timeToKill = document.getElementById('timeToKill');
+                let totalDamage = 0;
+                let damageBreakdown = '';
+                let totalDefenderHealth = 0;
+                let totalDefenderSupply = 0;
+                let totalDefenderCost = 0;
+                let totalAttackerSupply = 0;
+                let totalAttackerCost = 0;
+                let totalAttackerDPS = 0;
+                let totalDefenderDPS = 0;
+
+                attackers.forEach((attacker, attackerIndex) => {
+                    const attackerCost = calculateShipCost(attacker.ship);
+                    totalAttackerSupply += attacker.ship.Supply * attacker.count;
+                    totalAttackerCost += attackerCost.total * attacker.count;
+                    totalAttackerDPS += (attacker.ship.Total_DPS || 0) * attacker.count * attackerDamageMod;
+
+                    defenders.forEach((defender, defenderIndex) => {
+                        if (attackerIndex === 0) {
+                            const defenderCost = calculateShipCost(defender.ship);
+                            const modifiedDefenderHealth = 
+                                defender.ship.Hull * defenderHullMod + 
+                                defender.ship.Shields * defenderShieldMod + 
+                                defender.ship.Armor * (1 + (defender.ship.Armor_Strength + defenderArmorStrengthMod) / 100);
+                            totalDefenderHealth += modifiedDefenderHealth * defender.count;
+                            totalDefenderSupply += defender.ship.Supply * defender.count;
+                            totalDefenderCost += defenderCost.total * defender.count;
+                            totalDefenderDPS += (defender.ship.Total_DPS || 0) * defender.count * defenderDamageMod;
+                        }
+
+                        for (let i = 1; i <= 6; i++) {
+                            const damage = attacker.ship[`Damage_${i}`] * attackerDamageMod;
+                            const pen = attacker.ship[`Pen_${i}`];
+                            const dps = attacker.ship[`DPS_${i}`] * attackerDamageMod;
+
+                            if (damage && pen !== undefined && dps) {
+                                const effectiveDurability = Math.max(0, defender.ship.Durability - pen);
+                                const durabilityMultiplier = 100 / (100 + effectiveDurability);
+                                const armorStrengthMultiplier = 100 / (100 + defender.ship.Armor_Strength + defenderArmorStrengthMod);
+                                const effectiveArmor = defender.ship.Armor * (1 + (defender.ship.Armor_Strength + defenderArmorStrengthMod) / 100);
+                                const damageToArmor = Math.min(damage * durabilityMultiplier, effectiveArmor);
+                                const damageToHull = Math.max(0, (damage * durabilityMultiplier) - effectiveArmor);
+                                const effectiveDamage = (damageToArmor + damageToHull) * attacker.count;
+                                totalDamage += effectiveDamage;
+
+                                const additionalEHP = effectiveArmor - defender.ship.Armor;
+
+                                damageBreakdown += `
+                                    <p>Attacker ${attackerIndex + 1} Weapon ${i} vs Defender ${defenderIndex + 1}:</p>
+                                    <p>Total Damage: ${effectiveDamage.toFixed(2)}</p>
+                                    <p>Damage to Armor: ${damageToArmor.toFixed(2)}</p>
+                                    <p>Damage to Hull: ${damageToHull.toFixed(2)}</p>
+                                    <p>Durability Efficiency: ${(durabilityMultiplier * 100).toFixed(2)}%</p>
+                                    <p>Additional EHP from Armor: ${additionalEHP.toFixed(2)}</p>
+                                `;
+                            }
+                        }
+                    });
+
+                    const attackerDPS = Object.keys(attacker.ship)
+                        .filter(key => key.startsWith('DPS_') && attacker.ship[key])
+                        .reduce((sum, key) => sum + attacker.ship[key], 0) * attacker.count * attackerDamageMod;
+                    totalAttackerDPS += attackerDPS;
+                });
+
+                const timeToKillValue = totalDefenderHealth / totalAttackerDPS;
+                const dpsPerSupply = totalAttackerDPS / totalAttackerSupply;
+
+                const battleOverview = document.getElementById('battleOverview');
+                const battleStats = document.getElementById('battleStats');
+                const damageOutput = document.getElementById('damageOutput');
+                const researchBonus = document.getElementById('researchBonus');
+
+                // Battle Overview
+                const attackerAdvantage = totalAttackerDPS / totalDefenderHealth;
+                const defenderAdvantage = totalDefenderHealth / totalAttackerDPS;
+                const advantageRatio = attackerAdvantage / defenderAdvantage;
+
+                battleOverview.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-center">
+                            <h4 class="font-semibold">Attackers</h4>
+                            <p class="text-2xl font-bold">${totalAttackerSupply}</p>
+                            <p class="text-sm">Supply</p>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="font-semibold">VS</h4>
+                            <p class="text-2xl font-bold">${timeToKillValue.toFixed(2)}s</p>
+                            <p class="text-sm">Time to Kill</p>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="font-semibold">Defenders</h4>
+                            <p class="text-2xl font-bold">${totalDefenderSupply}</p>
+                            <p class="text-sm">Supply</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">Battle Advantage</h4>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${(advantageRatio / (1 + advantageRatio)) * 100}%"></div>
+                        </div>
+                        <p class="text-sm mt-1 text-center">${advantageRatio > 1 ? 'Attackers' : 'Defenders'} have the advantage</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold">Attacker Strength</h4>
+                            <p class="text-lg">${totalAttackerDPS.toFixed(2)} DPS</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">Defender Health</h4>
+                            <p class="text-lg">${totalDefenderHealth.toFixed(2)} HP</p>
+                        </div>
+                    </div>
+                `;
+
+                // Damage Output
+                damageOutput.innerHTML = `
+                    <p class="text-lg mb-2"><strong>Total Damage per volley:</strong> ${totalDamage.toFixed(2)}</p>
+                    <div class="mt-4 max-h-60 overflow-y-auto">
+                        <h4 class="font-semibold mb-2">Damage Breakdown:</h4>
+                        ${damageBreakdown}
+                    </div>
+                `;
+
+                // Calculate effective DPS
+                let totalEffectiveAttackerDPS = 0;
+                let totalEffectiveDefenderDPS = 0;
+
+                attackers.forEach(attacker => {
+                    defenders.forEach(defender => {
+                        const effectiveDPS = calculateEffectiveDPS(attacker.ship, defender.ship, attackerDamageMod, defenderArmorStrengthMod);
+                        totalEffectiveAttackerDPS += effectiveDPS * attacker.count;
+                    });
+                });
+
+                defenders.forEach(defender => {
+                    attackers.forEach(attacker => {
+                        const effectiveDPS = calculateEffectiveDPS(defender.ship, attacker.ship, defenderDamageMod, attackerArmorStrengthMod);
+                        totalEffectiveDefenderDPS += effectiveDPS * defender.count;
+                    });
+                });
+
+                const averageEffectiveAttackerDPS = totalEffectiveAttackerDPS / defenders.length;
+                const averageEffectiveDefenderDPS = totalEffectiveDefenderDPS / attackers.length;
+
+                // Detailed Battle Statistics
+                battleStats.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-indigo-800 p-4 rounded-lg shadow-md">
+                            <h4 class="font-semibold text-xl mb-4 text-indigo-200">Attacker Statistics</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="col-span-2 bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">DPS</p>
+                                    <p>Raw Total: <span class="text-green-400">${totalAttackerDPS.toFixed(2)}</span></p>
+                                    <p>Effective Avg: <span class="text-green-400">${averageEffectiveAttackerDPS.toFixed(2)}</span></p>
+                                </div>
+                                <div class="bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Supply</p>
+                                    <p>Total: <span class="text-green-400">${totalAttackerSupply}</span></p>
+                                </div>
+                                <div class="bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Cost</p>
+                                    <p>Total: <span class="text-green-400">${totalAttackerCost.toFixed(2)}</span> credits</p>
+                                </div>
+                                <div class="col-span-2 bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Efficiency (per Supply)</p>
+                                    <p>Raw DPS: <span class="text-green-400">${(totalAttackerDPS / totalAttackerSupply).toFixed(2)}</span></p>
+                                    <p>Effective DPS: <span class="text-green-400">${(averageEffectiveAttackerDPS / totalAttackerSupply).toFixed(2)}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-800 p-4 rounded-lg shadow-md">
+                            <h4 class="font-semibold text-xl mb-4 text-indigo-200">Defender Statistics</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="col-span-2 bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Health & DPS</p>
+                                    <p>Total Health: <span class="text-green-400">${totalDefenderHealth.toFixed(2)}</span></p>
+                                    <p>Raw Total DPS: <span class="text-green-400">${totalDefenderDPS.toFixed(2)}</span></p>
+                                    <p>Effective Avg DPS: <span class="text-green-400">${averageEffectiveDefenderDPS.toFixed(2)}</span></p>
+                                </div>
+                                <div class="bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Supply</p>
+                                    <p>Total: <span class="text-green-400">${totalDefenderSupply}</span></p>
+                                </div>
+                                <div class="bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Cost</p>
+                                    <p>Total: <span class="text-green-400">${totalDefenderCost.toFixed(2)}</span> credits</p>
+                                </div>
+                                <div class="col-span-2 bg-indigo-700 p-2 rounded">
+                                    <p class="font-semibold">Efficiency (per Supply)</p>
+                                    <p>HP: <span class="text-green-400">${(totalDefenderHealth / totalDefenderSupply).toFixed(2)}</span></p>
+                                    <p>Raw DPS: <span class="text-green-400">${(totalDefenderDPS / totalDefenderSupply).toFixed(2)}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-indigo-800 p-4 rounded-lg shadow-md">
+                        <h4 class="font-semibold text-xl mb-4 text-indigo-200">Efficiency Metrics</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-indigo-700 p-2 rounded">
+                                <p class="font-semibold">Attacker Efficiency (per credit)</p>
+                                <p>Raw DPS: <span class="text-green-400">${(totalAttackerDPS / totalAttackerCost).toFixed(4)}</span></p>
+                                <p>Effective DPS: <span class="text-green-400">${(averageEffectiveAttackerDPS / totalAttackerCost).toFixed(4)}</span></p>
+                            </div>
+                            <div class="bg-indigo-700 p-2 rounded">
+                                <p class="font-semibold">Defender Efficiency (per credit)</p>
+                                <p>Raw DPS: <span class="text-green-400">${(totalDefenderDPS / totalDefenderCost).toFixed(4)}</span></p>
+                                <p>Effective DPS: <span class="text-green-400">${(averageEffectiveDefenderDPS / totalDefenderCost).toFixed(4)}</span></p>
+                                <p>HP: <span class="text-green-400">${(totalDefenderHealth / totalDefenderCost).toFixed(4)}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Research Bonus
+                researchBonus.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold mb-2">Attackers:</h4>
+                            <p><strong>Hull Modifier:</strong> <span class="text-green-400">+${((attackerHullMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Shield Modifier:</strong> <span class="text-green-400">+${((attackerShieldMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Damage Modifier:</strong> <span class="text-green-400">+${((attackerDamageMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Additional Armor Strength:</strong> <span class="text-green-400">+${attackerArmorStrengthMod}</span></p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Defenders:</h4>
+                            <p><strong>Hull Modifier:</strong> <span class="text-green-400">+${((defenderHullMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Shield Modifier:</strong> <span class="text-green-400">+${((defenderShieldMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Damage Modifier:</strong> <span class="text-green-400">+${((defenderDamageMod - 1) * 100).toFixed(2)}%</span></p>
+                            <p><strong>Additional Armor Strength:</strong> <span class="text-green-400">+${defenderArmorStrengthMod}</span></p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOM content loaded');
+            await loadShipData();
+            console.log('Ship data loaded');
+
+            document.getElementById('addAttacker').addEventListener('click', () => {
+                addShipGroup('attacker');
+            });
+
+            document.getElementById('addDefender').addEventListener('click', () => {
+                addShipGroup('defender');
+            });
+
+            // Initial setup for the first attacker and defender
+            addShipGroup('attacker');
+            addShipGroup('defender');
+
+            // Add event listener for the calculate damage button
+            document.getElementById('calculateDamage').addEventListener('click', calculateDamage);
+
+            document.getElementById('swapSides').addEventListener('click', swapSides);
+
+            // Add event listeners for new collapsible elements
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.className.includes('collapsible')) {
+                    e.target.classList.toggle("active");
+                    const content = e.target.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                    }
+                }
+            });
+
+            console.log('Setup complete');
+        });
+
+        function swapSides() {
+            const attackerContainer = document.getElementById('attackerContainer');
+            const defenderContainer = document.getElementById('defenderContainer');
+            
+            // Store the current state
+            const attackerState = getContainerState(attackerContainer);
+            const defenderState = getContainerState(defenderContainer);
+            
+            // Clear both containers
+            attackerContainer.innerHTML = '';
+            defenderContainer.innerHTML = '';
+            
+            // Rebuild containers with swapped state
+            rebuildContainer(attackerContainer, defenderState, 'attacker');
+            rebuildContainer(defenderContainer, attackerState, 'defender');
+
+            // Swap global modifier values
+            ['HullMod', 'ShieldMod', 'DamageMod', 'ArmorStrengthMod'].forEach(mod => {
+                const attackerMod = document.getElementById(`attacker${mod}`);
+                const defenderMod = document.getElementById(`defender${mod}`);
+                const tempValue = attackerMod.value;
+                attackerMod.value = defenderMod.value;
+                defenderMod.value = tempValue;
+            });
+
+            // Update group info for both sides
+            updateGroupInfo('attacker');
+            updateGroupInfo('defender');
+
+            // Automatically recalculate after swapping
+            calculateDamage();
+        }
+
+        function getContainerState(container) {
+            return Array.from(container.querySelectorAll('.attacker-group, .defender-group')).map(group => ({
+                shipType: group.querySelector('select').value,
+                count: group.querySelector('input[type="number"]').value
+            }));
+        }
+
+        function rebuildContainer(container, state, newType) {
+            state.forEach(item => {
+                const newGroup = document.createElement('div');
+                newGroup.className = `${newType}-group mb-4`;
+                newGroup.innerHTML = `
+                    <select class="ship${newType === 'attacker' ? '1' : '2'} w-full p-2 mb-2 border rounded custom-select bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="">Select ${newType.charAt(0).toUpperCase() + newType.slice(1)} Ship</option>
+                    </select>
+                    <input type="number" class="ship${newType === 'attacker' ? '1' : '2'}Count w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="${item.count}" min="1" placeholder="Number of Ships">
+                    <div class="ship${newType === 'attacker' ? '1' : '2'}Details mb-2 text-indigo-100"></div>
+                `;
+                container.appendChild(newGroup);
+                setupShipGroup(newGroup, newType);
+                
+                // Set the selected ship and update details
+                const select = newGroup.querySelector('select');
+                select.value = item.shipType;
+                select.dispatchEvent(new Event('change'));
+            });
+        }
+
+        function setupShipGroups(type) {
+            const container = document.getElementById(`${type}Container`);
+            const groups = container.querySelectorAll(`.${type}-group`);
+            groups.forEach(group => {
+                setupShipGroup(group, type);
+                // Trigger change event to update ship details and group info
+                const select = group.querySelector('select');
+                select.dispatchEvent(new Event('change'));
+            });
+            // Update overall group info
+            updateGroupInfo(type);
+        }
+
+        function populateShipSelects() {
+            populateShipSelect(document.querySelector('.ship1'));
+            populateShipSelect(document.querySelector('.ship2'));
+        }
+
+        function populateShipSelect(selectElement) {
+            shipData.forEach(ship => {
+                const option = new Option(ship.Ship, ship.Ship);
+                selectElement.add(option);
+            });
+        }
+
+        function addShipGroup(type) {
+            const container = document.getElementById(`${type}Container`);
+            const newGroup = document.createElement('div');
+            newGroup.className = `${type}-group ship-group mb-4`;
+            newGroup.innerHTML = `
+                <select class="ship${type === 'attacker' ? '1' : '2'} w-full p-2 mb-2 border rounded custom-select bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">Select ${type.charAt(0).toUpperCase() + type.slice(1)} Ship</option>
+                </select>
+                <input type="number" class="ship${type === 'attacker' ? '1' : '2'}Count w-full p-2 mb-2 border rounded bg-indigo-900 text-indigo-100 border-indigo-500 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="1" min="1" placeholder="Number of Ships">
+                <div class="ship${type === 'attacker' ? '1' : '2'}Details mb-2 text-indigo-100"></div>
+            `;
+            container.appendChild(newGroup);
+            setupShipGroup(newGroup, type);
+        }
+
+        function setupShipGroup(group, type) {
+            const select = group.querySelector(`.ship${type === 'attacker' ? '1' : '2'}`);
+            const countInput = group.querySelector(`.ship${type === 'attacker' ? '1' : '2'}Count`);
+            const details = group.querySelector(`.ship${type === 'attacker' ? '1' : '2'}Details`);
+
+            populateShipSelect(select);
+            select.addEventListener('change', () => {
+                updateShipDetails(select, details);
+                updateGroupInfo(type);
+            });
+            countInput.addEventListener('input', () => {
+                updateGroupInfo(type);
+            });
+        }
+
+        function updateGroupInfo(type) {
+            const groups = document.querySelectorAll(`.${type}-group`);
+            let totalSupply = 0;
+            let totalDPS = 0;
+            let totalHP = 0;
+            const shipSummaries = {};
+
+            groups.forEach(group => {
+                const ship = shipData.find(s => s.Ship === group.querySelector(`.ship${type === 'attacker' ? '1' : '2'}`).value);
+                const count = parseInt(group.querySelector(`.ship${type === 'attacker' ? '1' : '2'}Count`).value) || 0;
+
+                if (ship) {
+                    totalSupply += ship.Supply * count;
+                    totalDPS += (ship.Total_DPS || 0) * count;
+                    totalHP += ship['Total Health'] * count;
+
+                    if (!shipSummaries[ship.Ship]) {
+                        shipSummaries[ship.Ship] = {
+                            count: 0,
+                            supply: 0,
+                            dps: 0,
+                            totalHP: 0,
+                            hullHP: 0,
+                            armorHP: 0,
+                            shieldHP: 0,
+                            effectiveArmorHP: 0
+                        };
+                    }
+
+                    shipSummaries[ship.Ship].count += count;
+                    shipSummaries[ship.Ship].supply += ship.Supply * count;
+                    shipSummaries[ship.Ship].dps += (ship.Total_DPS || 0) * count;
+                    shipSummaries[ship.Ship].totalHP += ship['Total Health'] * count;
+                    shipSummaries[ship.Ship].hullHP += ship.Hull * count;
+                    shipSummaries[ship.Ship].armorHP += ship.Armor * count;
+                    shipSummaries[ship.Ship].shieldHP += ship.Shields * count;
+                    shipSummaries[ship.Ship].effectiveArmorHP += (ship.Armor * (1 + ship.Armor_Strength / 100) - ship.Armor) * count;
+                }
+            });
+
+            const container = document.getElementById(`${type}Container`);
+            let groupInfoDiv = container.querySelector('.group-info');
+            if (!groupInfoDiv) {
+                groupInfoDiv = document.createElement('div');
+                groupInfoDiv.className = 'group-info mb-4';
+                container.insertBefore(groupInfoDiv, container.firstChild);
+            }
+
+            let totalCredits = 0;
+            let totalMetal = 0;
+            let totalCrystal = 0;
+
+            let shipBreakdown = '';
+            for (const [shipName, summary] of Object.entries(shipSummaries)) {
+                const ship = shipData.find(s => s.Ship === shipName);
+                const credits = ship.Credits * summary.count;
+                const metal = ship.Metal * summary.count;
+                const crystal = ship.Crystal * summary.count;
+                const blendedCost = credits + metal * 2 + crystal * 3;
+
+                totalCredits += credits;
+                totalMetal += metal;
+                totalCrystal += crystal;
+
+                shipBreakdown += `
+                    <div class="ship-summary bg-indigo-800 p-4 rounded">
+                        <h4 class="font-semibold text-lg text-indigo-300 mb-2">${shipName} (x${summary.count})</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <p><strong>Supply:</strong> ${summary.supply}</p>
+                            <p><strong>Total DPS:</strong> ${summary.dps.toFixed(2)}</p>
+                            <p><strong>Total HP:</strong> ${summary.totalHP}</p>
+                        </div>
+                        <h5 class="font-semibold text-indigo-400 mt-2 mb-1">HP Breakdown:</h5>
+                        <div class="grid grid-cols-2 gap-2 ml-4">
+                            <p>Hull HP: ${summary.hullHP}</p>
+                            <p>Armor HP: ${summary.armorHP}</p>
+                            <p>Shield HP: ${summary.shieldHP}</p>
+                            <p>Effective HP from Armor: ${summary.effectiveArmorHP.toFixed(2)}</p>
+                        </div>
+                        <h5 class="font-semibold text-indigo-400 mt-2 mb-1">Costs:</h5>
+                        <div class="grid grid-cols-2 gap-2 ml-4">
+                            <p>Credits: ${credits}</p>
+                            <p>Metal: ${metal}</p>
+                            <p>Crystal: ${crystal}</p>
+                            <p>Blended Cost in Credits: ${blendedCost}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const totalBlendedCost = totalCredits + totalMetal * 2 + totalCrystal * 3;
+
+            groupInfoDiv.innerHTML = `
+                <button class="collapsible bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Group Information</button>
+                <div class="content bg-indigo-900 p-4 rounded-b hidden">
+                    <div class="overall-summary bg-indigo-800 p-4 rounded mb-4">
+                        <h3 class="font-semibold text-xl text-indigo-200 mb-2">Overall Summary</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <p><strong>Total Supply:</strong> ${totalSupply}</p>
+                            <p><strong>Total DPS:</strong> ${totalDPS.toFixed(2)}</p>
+                            <p><strong>Total HP:</strong> ${totalHP}</p>
+                        </div>
+                        <h4 class="font-semibold text-lg text-indigo-300 mt-2 mb-1">Total Costs:</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <p>Credits: ${totalCredits}</p>
+                            <p>Metal: ${totalMetal}</p>
+                            <p>Crystal: ${totalCrystal}</p>
+                            <p>Blended Cost in Credits: ${totalBlendedCost}</p>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-xl text-indigo-200 mb-2">Breakdown by Ship Type</h3>
+                    <div class="ship-breakdown space-y-4 max-h-96 overflow-y-auto pr-2">
+                        ${shipBreakdown}
+                    </div>
+                </div>
+            `;
+
+            // Add event listener to the new collapsible
+            const collapsible = groupInfoDiv.querySelector('.collapsible');
+            collapsible.addEventListener('click', function() {
+                this.classList.toggle("active");
+                const content = this.nextElementSibling;
+                content.classList.toggle("hidden");
+            });
+        }
+
+    </script>
+    <script>
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.className.includes('collapsible')) {
+                e.target.classList.toggle("active");
+                var content = e.target.nextElementSibling;
+                content.classList.toggle("show");
+            }
+        });
+    </script>
+</body>
+</html>
